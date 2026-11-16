@@ -3,9 +3,10 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 export function formatRelativeAge(updated, now) {
+  if (typeof updated !== 'string') return 'unknown';
   const then = new Date(updated).getTime();
-  if (Number.isNaN(then)) return 'unknown';
   const seconds = Math.floor((new Date(now).getTime() - then) / 1000);
+  if (Number.isNaN(seconds)) return 'unknown';
   if (seconds < MINUTE) return 'just now';
   if (seconds < HOUR) return `${Math.floor(seconds / MINUTE)} min ago`;
   if (seconds < DAY) return `${Math.floor(seconds / HOUR)} h ago`;
