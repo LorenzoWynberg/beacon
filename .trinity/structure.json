@@ -1,0 +1,10 @@
+{
+  "builds": [
+    {
+      "root": ".",
+      "discover": [
+        "trinity.json"
+      ]
+    }
+  ]
+}

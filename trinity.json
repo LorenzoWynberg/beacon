@@ -1,0 +1,9 @@
+{
+  "role": "package",
+  "targets": [
+    {
+      "type": "Website",
+      "label": "Status board"
+    }
+  ]
+}
