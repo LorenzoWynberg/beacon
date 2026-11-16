@@ -46,7 +46,7 @@ test('twitter tags', () => {
 });
 
 test('titles match <title> and descriptions match', () => {
-  assert.equal(title, 'Beacon status');
+  assert.equal(title, 'beacon — service status');
 });
 
 test('no image tags', () => {

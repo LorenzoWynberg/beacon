@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 - 2026-11-16
+
+### Highlights
+
+#### Status board: tab title, favicon and link preview
+
+The status board looks more like a real site in your browser and when you share it. The browser tab now reads **beacon — service status**, and a small green circle favicon matching the "up" badge makes the tab easy to find. Links to the board shared in chat apps or shown in search results now carry a short description of the page.
+
+The board's behaviour hasn't changed. It reads the same JSON file and shows the same up/down badges.
+
 ## 0.1.0 - 2026-11-16
 
 ### New
