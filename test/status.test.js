@@ -37,6 +37,8 @@ test('parseStatus returns updated and services, note only when present', () => {
 
 test('isStale uses a strict 24 h threshold', () => {
   assert.equal(isStale(ago(24 * 3600 - 60), now), false);
+  assert.equal(isStale(ago(24 * 3600), now), false);
+  assert.equal(isStale(ago(24 * 3600 + 1), now), true);
   assert.equal(isStale(ago(24 * 3600 + 60), now), true);
   assert.equal(isStale(undefined, now), true);
   assert.equal(isStale('nope', now), true);

@@ -54,13 +54,14 @@ function showError() {
   const p = document.createElement('p');
   p.textContent = "The status data couldn't be loaded.";
   box.append(h, p);
-  list.append(box);
+  notices.append(box);
 }
 
 try {
   const res = await fetch(`status.json?t=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   render(parseStatus(await res.text()));
-} catch {
+} catch (err) {
+  console.warn('status.json could not be loaded:', err);
   showError();
 }
