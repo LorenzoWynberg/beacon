@@ -19,4 +19,8 @@ When `isStale` is true, a `p.banner` is added to `#notices` saying the status ma
 
 The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response, a fetch failure or a parse failure logs `console.warn`, clears the page and shows a `role="alert"` box titled "Status unavailable" in `#notices`.
 
+## Head metadata
+
+`index.html` sets the title `beacon — service status`, a `meta name="description"`, and an inline SVG favicon (a green circle) as a `data:` URI, so no icon file is served.
+
 `main.js` is not unit tested; `status.js` functions, including `isStale` boundaries, are.
