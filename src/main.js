@@ -32,7 +32,7 @@ function render({ updated, services }) {
     li.className = 'service';
     const name = document.createElement('span');
     name.className = 'service__name';
-    name.textContent = s.name || 'Unnamed service';
+    name.textContent = s.name.trim() || 'Unnamed service';
     const badge = document.createElement('span');
     badge.className = `badge badge--${s.status}`;
     badge.textContent = s.status === 'up' ? 'Up' : s.status === 'down' ? 'Down' : 'Unknown';

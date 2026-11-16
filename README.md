@@ -16,12 +16,12 @@ plain HTML, CSS and ES modules, hosted on GitHub Pages from `main` at `/`.
 ```
 
 - `updated`: ISO 8601 timestamp with offset.
-- `services[].name`: display name.
+- `services[].name`: display name. A missing or blank name shows "Unnamed service".
 - `services[].status`: `up` or `down`, case- and whitespace-insensitive. Any other value shows a grey `Unknown` badge.
 - `services[].note`: optional short text.
 
 If `updated` is missing, unparseable or more than 24 hours old, a banner reads
-"This status may be stale". If `status.json` is missing or malformed (invalid
+"This status may be stale", and the header shows "Updated time unknown". If `status.json` is missing or malformed (invalid
 JSON, not an object, or `services` not an array), the page shows "Status unavailable".
 
 ## Updating the page
