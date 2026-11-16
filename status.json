@@ -1,0 +1,9 @@
+{
+  "updated": "2026-11-16T18:00:00+00:00",
+  "services": [
+    { "name": "Website", "status": "up" },
+    { "name": "API", "status": "up", "note": "Elevated latency earlier today, now recovered." },
+    { "name": "Database", "status": "down", "note": "Investigating connection failures." },
+    { "name": "Email", "status": "up" }
+  ]
+}
