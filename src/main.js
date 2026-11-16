@@ -1,6 +1,7 @@
-import { formatRelativeAge, parseStatus } from './status.js';
+import { formatRelativeAge, isStale, parseStatus } from './status.js';
 
 const list = document.getElementById('services');
+const notices = document.getElementById('notices');
 const updatedEl = document.getElementById('updated');
 
 function render({ updated, services }) {
@@ -11,6 +12,16 @@ function render({ updated, services }) {
   time.textContent = formatRelativeAge(updated, Date.now());
   updatedEl.append(time);
 
+  if (isStale(updated, Date.now())) {
+    const age = formatRelativeAge(updated, Date.now());
+    const banner = document.createElement('p');
+    banner.className = 'banner';
+    banner.textContent = age === 'unknown'
+      ? 'This status may be stale — last updated time unknown'
+      : `This status may be stale — last updated ${age}`;
+    notices.append(banner);
+  }
+
   for (const s of services) {
     const li = document.createElement('li');
     li.className = 'service';
@@ -18,9 +29,8 @@ function render({ updated, services }) {
     name.className = 'service__name';
     name.textContent = s.name;
     const badge = document.createElement('span');
-    const down = s.status === 'down';
-    badge.className = `badge badge--${down ? 'down' : 'up'}`;
-    badge.textContent = down ? 'Down' : 'Up';
+    badge.className = `badge badge--${s.status}`;
+    badge.textContent = s.status === 'up' ? 'Up' : s.status === 'down' ? 'Down' : 'Unknown';
     li.append(name, badge);
     if (s.note) {
       const note = document.createElement('p');
@@ -32,9 +42,25 @@ function render({ updated, services }) {
   }
 }
 
+function showError() {
+  updatedEl.textContent = '';
+  notices.replaceChildren();
+  list.replaceChildren();
+  const box = document.createElement('div');
+  box.className = 'error';
+  box.setAttribute('role', 'alert');
+  const h = document.createElement('h2');
+  h.textContent = 'Status unavailable';
+  const p = document.createElement('p');
+  p.textContent = "The status data couldn't be loaded.";
+  box.append(h, p);
+  list.append(box);
+}
+
 try {
-  const res = await fetch('status.json');
+  const res = await fetch(`status.json?t=${Date.now()}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   render(parseStatus(await res.text()));
 } catch {
-  updatedEl.textContent = 'Status is unavailable right now.';
+  showError();
 }
