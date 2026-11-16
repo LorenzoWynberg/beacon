@@ -5,12 +5,17 @@ const notices = document.getElementById('notices');
 const updatedEl = document.getElementById('updated');
 
 function render({ updated, services }) {
-  updatedEl.textContent = 'Updated ';
-  const time = document.createElement('time');
-  time.setAttribute('datetime', String(updated));
-  time.title = new Date(updated).toLocaleString();
-  time.textContent = formatRelativeAge(updated, Date.now());
-  updatedEl.append(time);
+  const updatedAge = formatRelativeAge(updated, Date.now());
+  if (updatedAge === 'unknown') {
+    updatedEl.textContent = 'Updated time unknown';
+  } else {
+    updatedEl.textContent = 'Updated ';
+    const time = document.createElement('time');
+    time.setAttribute('datetime', String(updated));
+    time.title = new Date(updated).toLocaleString();
+    time.textContent = updatedAge;
+    updatedEl.append(time);
+  }
 
   if (isStale(updated, Date.now())) {
     const age = formatRelativeAge(updated, Date.now());
@@ -27,7 +32,7 @@ function render({ updated, services }) {
     li.className = 'service';
     const name = document.createElement('span');
     name.className = 'service__name';
-    name.textContent = s.name;
+    name.textContent = s.name || 'Unnamed service';
     const badge = document.createElement('span');
     badge.className = `badge badge--${s.status}`;
     badge.textContent = s.status === 'up' ? 'Up' : s.status === 'down' ? 'Down' : 'Unknown';
