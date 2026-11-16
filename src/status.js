@@ -14,13 +14,44 @@ export function formatRelativeAge(updated, now) {
   return days === 1 ? '1 day ago' : `${days} days ago`;
 }
 
+export function isStale(updated, now) {
+  if (typeof updated !== 'string') return true;
+  const then = new Date(updated).getTime();
+  const diff = new Date(now).getTime() - then;
+  if (Number.isNaN(diff)) return true;
+  return diff > DAY * 1000;
+}
+
+export function normaliseStatus(v) {
+  if (typeof v === 'string') {
+    const s = v.trim().toLowerCase();
+    if (s === 'up' || s === 'down') return s;
+  }
+  return 'unknown';
+}
+
 export function parseStatus(text) {
-  const data = JSON.parse(text);
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error('status.json is not valid JSON');
+  }
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('status.json must be a JSON object');
+  }
+  if (!Array.isArray(data.services)) {
+    throw new Error('status.json "services" must be an array');
+  }
   return {
     updated: data.updated,
     services: data.services.map((s) => {
-      const out = { name: s.name, status: s.status };
-      if (typeof s.note === 'string') out.note = s.note;
+      const item = s !== null && typeof s === 'object' ? s : {};
+      const out = {
+        name: typeof item.name === 'string' ? item.name : '',
+        status: normaliseStatus(item.status),
+      };
+      if (typeof item.note === 'string') out.note = item.note;
       return out;
     }),
   };

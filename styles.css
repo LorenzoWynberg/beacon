@@ -7,6 +7,8 @@
   --on-danger: oklch(0.99 0 0);
   --success: oklch(0.5 0.13 150);
   --on-success: oklch(0.99 0 0);
+  --neutral: oklch(0.45 0.01 265);
+  --on-neutral: oklch(0.99 0 0);
   --border: oklch(0.9 0.005 265);
   --ring: oklch(0.55 0.15 260);
 
@@ -94,5 +96,28 @@ h1 {
 }
 .badge--up { background: var(--success); color: var(--on-success); }
 .badge--down { background: var(--danger); color: var(--on-danger); }
+.badge--unknown { background: var(--neutral); color: var(--on-neutral); }
+
+.banner {
+  margin: 0 0 var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.error {
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.error h2 { margin: 0 0 var(--spacing-2); font-size: var(--text-base); }
+.error p { margin: 0; }
 
 :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
