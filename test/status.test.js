@@ -72,6 +72,8 @@ test('groupServices orders by first appearance and merges case/whitespace', () =
   const r = groupServices([svc('1', 'Web'), svc('2', 'API'), svc('3', 'web'), svc('4', 'api')]);
   assert.equal(r.grouped, true);
   assert.deepEqual(r.groups.map((g) => [g.name, g.services.map((s) => s.name)]), [['Web', ['1', '3']], ['API', ['2', '4']]]);
+  const padded = groupServices([svc('1', 'Web'), svc('2', '  WEB ')]);
+  assert.deepEqual(padded.groups.map((g) => [g.name, g.services.map((s) => s.name)]), [['Web', ['1', '2']]]);
 });
 
 test('groupServices puts ungrouped and explicit other last', () => {
