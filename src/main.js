@@ -1,4 +1,5 @@
-import { formatRelativeAge, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
+import { groupServices, parseStatus } from './status.js';
+import { computeFreshness, startFreshnessClock } from './freshness.js';
 
 const list = document.getElementById('services');
 const notices = document.getElementById('notices');
@@ -23,40 +24,41 @@ function serviceItem(s) {
   return li;
 }
 
-function render({ updated, services }) {
-  const now = Date.now();
-  const updatedAge = formatRelativeAge(updated, now);
-  if (updatedAge === 'unknown' && isFutureTimestamp(updated, now)) {
-    updatedEl.textContent = 'Updated ';
-    const time = document.createElement('time');
-    time.setAttribute('datetime', String(updated));
-    time.title = new Date(updated).toLocaleString();
-    time.textContent = 'time unknown';
-    updatedEl.append(time);
-  } else if (updatedAge === 'unknown') {
+let bannerEl = null;
+
+function renderFreshness(updated) {
+  const { age, future, bannerText } = computeFreshness(updated, Date.now());
+  if (age === 'unknown' && !future) {
     updatedEl.textContent = 'Updated time unknown';
   } else {
     updatedEl.textContent = 'Updated ';
     const time = document.createElement('time');
     time.setAttribute('datetime', String(updated));
     time.title = new Date(updated).toLocaleString();
-    time.textContent = updatedAge;
+    time.textContent = future ? 'time unknown' : age;
     updatedEl.append(time);
   }
 
-  if (isStale(updated, now)) {
-    const age = updatedAge;
-    const banner = document.createElement('p');
-    banner.className = 'banner';
-    banner.textContent = age === 'unknown'
-      ? 'This status may be stale — last updated time unknown'
-      : `This status may be stale — last updated ${age}`;
-    notices.append(banner);
+  if (bannerText === null) {
+    if (bannerEl) bannerEl.remove();
+    bannerEl = null;
+  } else if (!bannerEl) {
+    bannerEl = document.createElement('p');
+    bannerEl.className = 'banner';
+    bannerEl.textContent = bannerText;
+    notices.append(bannerEl);
+  } else if (bannerEl.textContent !== bannerText) {
+    bannerEl.textContent = bannerText;
   }
+}
+
+function render({ updated, services }) {
+  renderFreshness(updated);
 
   const { grouped, groups } = groupServices(services);
   if (!grouped) {
     list.append(...services.map(serviceItem));
+    startFreshnessClock(() => renderFreshness(updated));
     return;
   }
   groups.forEach((g, i) => {
@@ -74,6 +76,7 @@ function render({ updated, services }) {
     list.before(section);
   });
   list.remove();
+  startFreshnessClock(() => renderFreshness(updated));
 }
 
 function showError() {
