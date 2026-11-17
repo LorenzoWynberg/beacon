@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2 - 2026-11-17
+
+### Fixed
+
+**The status board stays accurate when you leave it open.** Before this fix, the "Updated …" age in the header and the stale banner were worked out once, when the page loaded, and then never changed. A tab left open could keep saying "just now" for hours, and it never showed the stale warning even after the data was more than a day old. The board now recalculates both every minute, and again as soon as you switch back to the tab. The age counts up as expected ("just now", "5 min ago", "1 day ago"), and the banner "This status may be stale — last updated …" appears once the last update is more than 24 hours old.
+
+The recalculation uses the status data already on the page and doesn't fetch it again, so the services shown don't change until you reload. Only one stale banner is ever shown. It updates its wording as the age grows and doesn't stack copies, and nothing else in the notices area is affected. A page that couldn't load its status at all still shows only the "Status unavailable" message.
+
+This is a fix to existing behaviour on the 0.4.x maintenance line. Nothing new to set up and no breaking changes.
+
 ## 0.4.1 - 2026-11-17
 
 ### Fixed
