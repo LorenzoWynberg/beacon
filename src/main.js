@@ -1,4 +1,5 @@
 import { fetchWithTimeout, hasChanged, startPoller } from './refresh.js';
+import { sortLeastReliableFirst } from './sort.js';
 import { formatRelativeAge, formatSince, formatUptime, groupServices, isFutureTimestamp, isStale, parseStatus, uptimeOverWindow } from './status.js';
 
 const list = document.getElementById('services');
@@ -88,13 +89,28 @@ function renderHeader(updated, now) {
   else notices.append(banner);
 }
 
+let sortOn = false;
+let lastOrder = [];
+
+function orderedGroups(services, now) {
+  const { grouped, groups } = groupServices(services);
+  if (!sortOn) return { grouped, groups };
+  return { grouped, groups: groups.map((g) => ({ ...g, services: sortLeastReliableFirst(g.services, now) })) };
+}
+
+// Flat list in rendered order, so cards pair with services by index.
+function displayOrder(services, now) {
+  return orderedGroups(services, now).groups.flatMap((g) => g.services);
+}
+
 function renderServices(services, now) {
   document.querySelectorAll('main > section.group').forEach((el) => el.remove());
   if (!list.isConnected) notices.after(list);
   list.replaceChildren();
-  const { grouped, groups } = groupServices(services);
+  const { grouped, groups } = orderedGroups(services, now);
+  lastOrder = groups.flatMap((g) => g.services);
   if (!grouped) {
-    list.append(...services.map((s) => serviceItem(s, now)));
+    list.append(...groups[0].services.map((s) => serviceItem(s, now)));
     return;
   }
   groups.forEach((g, i) => {
@@ -124,7 +140,7 @@ function refreshSinceAges(now) {
 
 // Unchanged refetch: cards are in groupServices flat order, so pair them by index.
 function refreshUptimes(now) {
-  const services = groupServices(lastStatus.services).groups.flatMap((g) => g.services);
+  const services = displayOrder(lastStatus.services, now);
   const cards = document.querySelectorAll('li.service');
   if (cards.length !== services.length) return;
   cards.forEach((card, i) => {
@@ -176,6 +192,16 @@ async function fetchText() {
   );
 }
 
+const sortToggle = document.getElementById('sort-toggle');
+if (sortToggle) {
+  sortToggle.addEventListener('click', () => {
+    sortOn = !sortOn;
+    sortToggle.setAttribute('aria-pressed', String(sortOn));
+    sortToggle.textContent = `Least reliable first: ${sortOn ? 'on' : 'off'}`;
+    if (lastStatus) renderServices(lastStatus.services, Date.now());
+  });
+}
+
 let lastText;
 let lastStatus;
 
@@ -185,6 +211,11 @@ async function refetch() {
     if (!hasChanged(lastText, text)) {
       const now = Date.now();
       renderHeader(lastStatus.updated, now);
+      const order = sortOn ? displayOrder(lastStatus.services, now) : null;
+      if (order && order.some((s, i) => s !== lastOrder[i])) {
+        renderServices(lastStatus.services, now);
+        return;
+      }
       refreshSinceAges(now);
       refreshUptimes(now);
       return;
