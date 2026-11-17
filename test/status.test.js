@@ -36,6 +36,13 @@ test('parseStatus returns updated and services, note only when present', () => {
   assert.equal(r.services[1].note, 'x');
 });
 
+test('parseStatus trims notes and omits blank or non-string ones', () => {
+  const notes = ['  degraded  ', '', '   ', '\t\n ', 42, null];
+  const r = parseStatus(JSON.stringify({ services: notes.map((note) => ({ name: 'a', note })) }));
+  assert.equal(r.services[0].note, 'degraded');
+  for (const s of r.services.slice(1)) assert.equal('note' in s, false);
+});
+
 test('isStale uses a strict 24 h threshold', () => {
   assert.equal(isStale(ago(24 * 3600 - 60), now), false);
   assert.equal(isStale(ago(24 * 3600), now), false);
