@@ -29,7 +29,7 @@ JSON, not an object, or `services` not an array), the page shows "Status unavail
 
 ## Updating the page
 
-Edit `status.json`, commit, push to `main`. Pages may take up to ~10 minutes to publish.
+Edit `status.json`, commit, push to `main`. Pages may take up to ~10 minutes to publish. A page that is already open re-fetches `status.json` every 5 minutes and picks up the change within about 5 minutes of publishing, with no reload.
 
 ## Local preview
 
