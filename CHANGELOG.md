@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 - 2026-11-16
+
+### New: service groups
+
+You can now list related services together under a heading. Give a service an optional `group` in `status.json`, for example `{ "name": "Database", "group": "API", "status": "down" }`, and the board shows each group as its own titled section, one after another. Screen readers announce each section's list by its heading.
+
+Grouping is meant to be forgiving. Group names are trimmed and matched case-insensitively, so `Web`, `web` and ` WEB ` all end up in one group, shown with the spelling used first in the file. Groups appear in the order they first appear in the file. Services with no group, and services in a group called "Other" (in any case), go under a final **Other** heading. That heading only appears when it has services in it. A blank or non-text `group` value is ignored.
+
+### Unchanged: boards without groups
+
+Grouping is opt-in. If no service in your `status.json` has a `group`, the page shows the same single flat list as before, with no headings, so you don't need to change existing files.
+
+The sample `status.json` now uses groups: Website is under **Web**, API and Database are under **API**, and Email, which has no group, appears under **Other**.
+
+### Improved: documentation
+
+The docs now cover the grouped board. A new **Grouping services** guide explains the `group` field and the rules for merging names, ordering groups and the **Other** heading. The `status.json` field reference and the README both list `services[].group`, and the technical guide explains how the page renders grouped and flat boards.
+
 ## 0.3.0 - 2026-11-16
 
 ### New
