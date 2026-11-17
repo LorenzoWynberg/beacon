@@ -98,6 +98,16 @@ h1 {
 .badge--down { background: var(--danger); color: var(--on-danger); }
 .badge--unknown { background: var(--neutral); color: var(--on-neutral); }
 
+.group + .group { margin-top: var(--spacing-8); }
+.group__title {
+  margin: 0 0 var(--spacing-3);
+  font-size: var(--text-base);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
 .banner {
   margin: 0 0 var(--spacing-4);
   padding: var(--spacing-3) var(--spacing-4);
