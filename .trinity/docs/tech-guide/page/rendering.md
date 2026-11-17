@@ -6,8 +6,9 @@
 
 Pure functions, covered by `test/status.test.js`:
 
-- `parseStatus(text)` parses JSON and returns `{ updated, services }`. It throws when the text is not valid JSON, is not an object, or has no `services` array. Each service keeps `name` (empty string if not a string), `status` run through `normaliseStatus`, and, only when it is a string, `note`. It also keeps `group`, only when it is a string with non-blank content, stored trimmed.
+- `parseStatus(text)` parses JSON and returns `{ updated, services }`. It throws when the text is not valid JSON, is not an object, or has no `services` array. Each service keeps `name` (empty string if not a string), `status` derived from the raw `status` (a string gives `invalid`; an object gives `normaliseStatus(status.state)`; anything else gives `unknown`), `since` (only when `status.since` is a string that parses to a valid date) and, only when it is a string, `note`. It also keeps `group`, only when it is a string with non-blank content, stored trimmed.
 - `groupServices(services)` returns `{ grouped, groups }`. See [grouping](grouping.md) for the merge, ordering and `Other` rules.
+- `formatSince(since, now)` returns `formatRelativeAge(since, now)`, or `null` when that is `unknown` (missing, unparseable or more than 5 minutes ahead).
 - `normaliseStatus(v)` trims and lowercases a string and returns `up` or `down`; anything else returns `unknown`.
 - `isFutureTimestamp(updated, now, toleranceMs = FUTURE_TOLERANCE_MS)` is true when `updated` is a string more than `toleranceMs` ahead of `now`; the default is 5 minutes, and exactly 5 minutes ahead is tolerated as clock skew.
 - `isStale(updated, now)` is true when `updated` is not a string, the date is invalid, it is a future timestamp beyond tolerance, or the age is more than 24 h; exactly 24 h is not stale.
@@ -15,7 +16,7 @@ Pure functions, covered by `test/status.test.js`:
 
 ## `src/main.js`
 
-`serviceItem(s)` builds one `li.service` with a name and a badge: `badge--up` labelled Up, `badge--down` labelled Down, or `badge--unknown` labelled Unknown. A string `note` renders as `p.service__note`.
+`serviceItem(s, now)` builds one `li.service` with a name and a badge: `badge--up` labelled Up, `badge--down` labelled Down, `badge--invalid` (outlined danger) labelled Invalid status, or `badge--unknown` labelled Unknown. When `formatSince` returns text, the badge and a `span.service__since` (`· since `, then a `time` with `datetime` and a local-time title) are wrapped in `span.service__status`. A string `note` renders as `p.service__note`.
 
 `render` calls `groupServices`. When `grouped` is false, the items are appended to the flat `ul#services`. When `grouped` is true, each group becomes a `section.group` holding an `h2.group__title` (id `group-<index>`) and its own `ul.services` with `aria-labelledby` pointing at that heading. The sections are inserted before `#services`, then the empty `#services` is removed.
 

@@ -3,7 +3,7 @@
 Add an optional `group` to a service in `status.json` to list it under a heading.
 
 ```json
-{ "name": "Database", "group": "API", "status": "down" }
+{ "name": "Database", "group": "API", "status": { "state": "down", "since": "2026-11-16T14:30:00+00:00" } }
 ```
 
 - Names are trimmed and match case-insensitively; the first spelling used is shown.

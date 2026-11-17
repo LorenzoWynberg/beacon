@@ -23,6 +23,11 @@ export function formatRelativeAge(updated, now) {
   return days === 1 ? '1 day ago' : `${days} days ago`;
 }
 
+export function formatSince(since, now) {
+  const age = formatRelativeAge(since, now);
+  return age === 'unknown' ? null : age;
+}
+
 export function isStale(updated, now) {
   if (isFutureTimestamp(updated, now)) return true;
   if (typeof updated !== 'string') return true;
@@ -57,10 +62,15 @@ export function parseStatus(text) {
     updated: data.updated,
     services: data.services.map((s) => {
       const item = s !== null && typeof s === 'object' ? s : {};
+      const raw = item.status;
+      const isObj = raw !== null && typeof raw === 'object' && !Array.isArray(raw);
       const out = {
         name: typeof item.name === 'string' ? item.name : '',
-        status: normaliseStatus(item.status),
+        status: typeof raw === 'string' ? 'invalid' : isObj ? normaliseStatus(raw.state) : 'unknown',
       };
+      if (isObj && typeof raw.since === 'string' && !Number.isNaN(new Date(raw.since).getTime())) {
+        out.since = raw.since;
+      }
       if (typeof item.note === 'string') out.note = item.note;
       if (typeof item.group === 'string' && item.group.trim()) out.group = item.group.trim();
       return out;

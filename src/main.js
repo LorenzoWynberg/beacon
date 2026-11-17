@@ -1,11 +1,11 @@
 import { fetchWithTimeout, hasChanged, startPoller } from './refresh.js';
-import { formatRelativeAge, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
+import { formatRelativeAge, formatSince, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
 
 const list = document.getElementById('services');
 const notices = document.getElementById('notices');
 const updatedEl = document.getElementById('updated');
 
-function serviceItem(s) {
+function serviceItem(s, now) {
   const li = document.createElement('li');
   li.className = 'service';
   const name = document.createElement('span');
@@ -13,8 +13,23 @@ function serviceItem(s) {
   name.textContent = s.name.trim() || 'Unnamed service';
   const badge = document.createElement('span');
   badge.className = `badge badge--${s.status}`;
-  badge.textContent = s.status === 'up' ? 'Up' : s.status === 'down' ? 'Down' : 'Unknown';
-  li.append(name, badge);
+  badge.textContent = { up: 'Up', down: 'Down', invalid: 'Invalid status' }[s.status] ?? 'Unknown';
+  const sinceAge = formatSince(s.since, now);
+  if (sinceAge === null) {
+    li.append(name, badge);
+  } else {
+    const status = document.createElement('span');
+    status.className = 'service__status';
+    const since = document.createElement('span');
+    since.className = 'service__since';
+    const time = document.createElement('time');
+    time.setAttribute('datetime', s.since);
+    time.title = new Date(s.since).toLocaleString();
+    time.textContent = sinceAge;
+    since.append('· since ', time);
+    status.append(badge, ' ', since);
+    li.append(name, status);
+  }
   if (s.note) {
     const note = document.createElement('p');
     note.className = 'service__note';
@@ -60,13 +75,13 @@ function renderHeader(updated, now) {
   else notices.append(banner);
 }
 
-function renderServices(services) {
+function renderServices(services, now) {
   document.querySelectorAll('main > section.group').forEach((el) => el.remove());
   if (!list.isConnected) notices.after(list);
   list.replaceChildren();
   const { grouped, groups } = groupServices(services);
   if (!grouped) {
-    list.append(...services.map(serviceItem));
+    list.append(...services.map((s) => serviceItem(s, now)));
     return;
   }
   groups.forEach((g, i) => {
@@ -79,11 +94,19 @@ function renderServices(services) {
     const ul = document.createElement('ul');
     ul.className = 'services';
     ul.setAttribute('aria-labelledby', h.id);
-    ul.append(...g.services.map(serviceItem));
+    ul.append(...g.services.map((s) => serviceItem(s, now)));
     section.append(h, ul);
     list.before(section);
   });
   list.remove();
+}
+
+// Unchanged refetch: keep the service nodes, only advance each "since" age in place.
+function refreshSinceAges(now) {
+  document.querySelectorAll('.service__since time').forEach((time) => {
+    const age = formatSince(time.getAttribute('datetime'), now);
+    if (age !== null && time.textContent !== age) time.textContent = age;
+  });
 }
 
 function showError() {
@@ -124,12 +147,15 @@ async function refetch() {
   try {
     const text = await fetchText();
     if (!hasChanged(lastText, text)) {
-      renderHeader(lastStatus.updated, Date.now());
+      const now = Date.now();
+      renderHeader(lastStatus.updated, now);
+      refreshSinceAges(now);
       return;
     }
     const status = parseStatus(text);
-    renderHeader(status.updated, Date.now());
-    renderServices(status.services);
+    const now = Date.now();
+    renderHeader(status.updated, now);
+    renderServices(status.services, now);
     lastText = text;
     lastStatus = status;
   } catch (err) {
@@ -140,8 +166,9 @@ async function refetch() {
 try {
   const text = await fetchText();
   const status = parseStatus(text);
-  renderHeader(status.updated, Date.now());
-  renderServices(status.services);
+  const now = Date.now();
+  renderHeader(status.updated, now);
+  renderServices(status.services, now);
   lastText = text;
   lastStatus = status;
   startPoller({
