@@ -201,7 +201,7 @@ test('uptimeOverWindow computes exact percentages and nulls', () => {
   assert.equal(uptimeOverWindow(svc({ since: ago(2 * H) }), now), null);
   assert.equal(uptimeOverWindow(svc({ history: [{ state: 'up', since: ago(10 * H) }] }), now), null);
   const unk = [{ state: 'up', since: ago(30 * H) }, { state: 'unknown', since: ago(12 * H) }];
-  assert.ok(Math.abs(uptimeOverWindow(svc({ history: unk, since: ago(6 * H), status: 'down' }), now) - 100 * 6 / 18) < 1e-9);
+  assert.ok(Math.abs(uptimeOverWindow(svc({ history: unk, since: ago(6 * H), status: 'down' }), now) - 100 * 12 / 18) < 1e-9);
   assert.equal(uptimeOverWindow(svc({ status: 'unknown', since: ago(30 * H) }), now), null);
   assert.equal(uptimeOverWindow(svc({ status: 'invalid', since: ago(30 * H) }), now), null);
   assert.equal(uptimeOverWindow({ name: 'A', status: 'up' }, now), null);
