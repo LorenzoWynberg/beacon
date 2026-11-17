@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.0 - 2026-11-17
+
+### New: see how long each service has been in its current state
+
+Each service now shows how long it has been up or down, not only its current state. Next to the badge, the board shows a muted line such as `· since 3 h ago`. Hover over it to see the exact local date and time. The age keeps counting on every automatic refresh, so it stays current without a page reload, even when `status.json` hasn't changed.
+
+To use it, give a service a `status` object with a `state` and an optional `since` timestamp (ISO 8601 with an offset):
+
+```json
+{ "name": "Database", "status": { "state": "down", "since": "2026-11-16T14:30:00+00:00" }, "note": "Investigating." }
+```
+
+`state` works as before. `up` or `down` is accepted in any case and with surrounding spaces, and any other value shows a grey **Unknown** badge. If `since` is missing, can't be read as a date, or is more than 5 minutes in the future, the row shows its badge with no "since" text.
+
+### Changed: the `status` format (breaking)
+
+The `{ state, since }` object is now the only accepted format for `status`. A service still written the old way, as a plain string like `"status": "up"`, now shows an outlined red **Invalid status** badge. Only that row is affected: the rest of the board keeps rendering normally. If an incident catches `status.json` half-migrated, you get one flagged row instead of a blank page.
+
+**To upgrade:** in `status.json`, replace each `"status": "up"` or `"status": "down"` with `"status": { "state": "up" }`, and add a `since` timestamp wherever you want the board to show how long that state has lasted. The README, the bundled `status.json` and the guides for editing `status.json` and grouping services all use the new format.
+
 ## 0.6.0 - 2026-11-17
 
 ### New
