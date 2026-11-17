@@ -7,6 +7,9 @@
 Pure functions, covered by `test/status.test.js`:
 
 - `parseStatus(text)` parses JSON and returns `{ updated, services }`. It throws when the text is not valid JSON, is not an object, or has no `services` array. Each service keeps `name` (empty string if not a string), `status` derived from the raw `status` (a string gives `invalid`; an object gives `normaliseStatus(status.state)`; anything else gives `unknown`), `since` (only when `status.since` is a string that parses to a valid date) and, only when it is a string, `note`. It also keeps `group`, only when it is a string with non-blank content, stored trimmed.
+- `parseStatus` also keeps `history` on a service when `status.history` is valid: an array of objects (non-null, non-array) each with a parseable string `since`, strictly ascending, the last strictly before the current `since`, and the current `since` present. Each entry becomes `{ state: normaliseStatus(state), since }`. Otherwise the whole history is dropped without throwing and no `history` key is set.
+- `uptimeOverWindow(service, now, windowMs = 24 h)` returns the percentage of `up` time among `up` + `down` time in the window ending at `now`, or `null` when the status is `invalid`, `since` is missing or later than `now`, history (or `since`) does not reach back to the window start, or no up/down time falls in the window. `unknown` time is ignored.
+- `formatUptime(pct)` returns `null` for a non-finite value, otherwise e.g. `99.9% up · 24 h` (one decimal, rounded down).
 - `groupServices(services)` returns `{ grouped, groups }`. See [grouping](grouping.md) for the merge, ordering and `Other` rules.
 - `formatSince(since, now)` returns `formatRelativeAge(since, now)`, or `null` when that is `unknown` (missing, unparseable or more than 5 minutes ahead).
 - `normaliseStatus(v)` trims and lowercases a string and returns `up` or `down`; anything else returns `unknown`.
@@ -16,7 +19,7 @@ Pure functions, covered by `test/status.test.js`:
 
 ## `src/main.js`
 
-`serviceItem(s, now)` builds one `li.service` with a name and a badge: `badge--up` labelled Up, `badge--down` labelled Down, `badge--invalid` (outlined danger) labelled Invalid status, or `badge--unknown` labelled Unknown. When `formatSince` returns text, the badge and a `span.service__since` (`· since `, then a `time` with `datetime` and a local-time title) are wrapped in `span.service__status`. A string `note` renders as `p.service__note`.
+`serviceItem(s, now)` builds one `li.service` with a name and a badge: `badge--up` labelled Up, `badge--down` labelled Down, `badge--invalid` (outlined danger) labelled Invalid status, or `badge--unknown` labelled Unknown. When `formatSince` returns text, the badge and a `span.service__since` (`· since `, then a `time` with `datetime` and a local-time title) are wrapped in `span.service__status`. When `uptimeOverWindow` gives a value, a `span.service__uptime` with the formatted text follows the since span inside `span.service__status`. A string `note` renders as `p.service__note`.
 
 `render` calls `groupServices`. When `grouped` is false, the items are appended to the flat `ul#services`. When `grouped` is true, each group becomes a `section.group` holding an `h2.group__title` (id `group-<index>`) and its own `ul.services` with `aria-labelledby` pointing at that heading. The sections are inserted before `#services`, then the empty `#services` is removed.
 
@@ -28,7 +31,7 @@ The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response
 
 ### Refresh
 
-`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header is refreshed; if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only. Each fetch, including reading the response body, is aborted after `REFETCH_TIMEOUT_MS` (30000) and counts as a failed fetch: on a refresh it warns and keeps the last board (pending clears); a hung first load shows the first-load error.
+`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header, the since ages and the uptime spans are refreshed in place (`refreshUptimes` pairs each `li.service` with the `groupServices` flat order, which matches DOM order, skips the pass on a length mismatch, and adds or removes the span and its separating space as needed); if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only. Each fetch, including reading the response body, is aborted after `REFETCH_TIMEOUT_MS` (30000) and counts as a failed fetch: on a refresh it warns and keeps the last board (pending clears); a hung first load shows the first-load error.
 
 ## `src/refresh.js`
 

@@ -2,7 +2,7 @@
   "updated": "2026-11-16T18:00:00+00:00",
   "services": [
     { "name": "Website", "group": "Web", "status": { "state": "up", "since": "2026-11-10T09:00:00+00:00" } },
-    { "name": "API", "group": "API", "status": { "state": "up", "since": "2026-11-16T15:00:00+00:00" }, "note": "Elevated latency earlier today, now recovered." },
+    { "name": "API", "group": "API", "status": { "state": "up", "since": "2026-11-16T15:00:00+00:00", "history": [{ "state": "up", "since": "2026-11-14T08:00:00+00:00" }, { "state": "down", "since": "2026-11-16T12:00:00+00:00" }] }, "note": "Elevated latency earlier today, now recovered." },
     { "name": "Database", "group": "API", "status": { "state": "down", "since": "2026-11-16T14:30:00+00:00" }, "note": "Investigating connection failures." },
     { "name": "Email", "status": { "state": "up", "since": "2026-11-01T12:00:00+00:00" } }
   ]

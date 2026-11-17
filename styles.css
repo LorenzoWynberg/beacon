@@ -148,6 +148,7 @@ h1 {
 
 .service__status { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); }
 .service__since { color: var(--muted); font-size: var(--text-sm); }
+.service__uptime { color: var(--muted); font-size: var(--text-sm); }
 
 .badge {
   flex: none;
