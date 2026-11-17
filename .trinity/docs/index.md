@@ -15,4 +15,5 @@ A single static page that lists named services with an Up or Down badge each, re
 ## Guides
 
 - [How the page renders](tech-guide/page/rendering.md)
+- [Share metadata](tech-guide/page/share-metadata.md)
 - [Updating the status](user-guide/updating/status-json.md)
