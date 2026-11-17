@@ -1,4 +1,25 @@
 export const REFRESH_INTERVAL_MS = 300000;
+export const REFETCH_TIMEOUT_MS = 30000;
+
+export function fetchWithTimeout(fetchFn, url, init, { timeoutMs = REFETCH_TIMEOUT_MS, timer } = {}) {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController();
+    const id = timer.setTimeout(() => {
+      controller.abort();
+      reject(new Error(`refetch timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    let result;
+    try {
+      result = Promise.resolve(fetchFn(url, { ...init, signal: controller.signal }));
+    } catch (err) {
+      result = Promise.reject(err);
+    }
+    result.then(
+      (v) => { timer.clearTimeout(id); resolve(v); },
+      (e) => { timer.clearTimeout(id); reject(e); },
+    );
+  });
+}
 
 export function hasChanged(last, next) {
   return last !== next;

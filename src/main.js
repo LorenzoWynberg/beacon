@@ -1,4 +1,4 @@
-import { hasChanged, startPoller } from './refresh.js';
+import { fetchWithTimeout, hasChanged, startPoller } from './refresh.js';
 import { formatRelativeAge, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
 
 const list = document.getElementById('services');
@@ -103,9 +103,18 @@ function showError() {
 }
 
 async function fetchText() {
-  const res = await fetch(`status.json?t=${Date.now()}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+  const timer = { setTimeout: (cb, ms) => setTimeout(cb, ms), clearTimeout: (id) => clearTimeout(id) };
+  // The body is read inside the timed fetch so a stalled body is aborted too.
+  return fetchWithTimeout(
+    async (url, init) => {
+      const res = await fetch(url, init);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    },
+    `status.json?t=${Date.now()}`,
+    { cache: 'no-store' },
+    { timer },
+  );
 }
 
 let lastText;

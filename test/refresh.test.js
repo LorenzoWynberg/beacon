@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { REFRESH_INTERVAL_MS, hasChanged, startPoller } from '../src/refresh.js';
+import { REFETCH_TIMEOUT_MS, REFRESH_INTERVAL_MS, fetchWithTimeout, hasChanged, startPoller } from '../src/refresh.js';
 
 function setup(runImpl) {
   const t = { cb: null, delay: null, intervals: 0, cleared: [] };
@@ -116,6 +116,52 @@ test('hasChanged', () => {
   assert.equal(hasChanged('a', 'a'), false);
   assert.equal(hasChanged('a', 'b'), true);
   assert.equal(hasChanged('a', 'a '), true);
+});
+
+function stubTimer() {
+  const t = { cb: null, delay: null, cleared: [] };
+  return Object.assign(t, {
+    setTimeout(cb, d) { t.cb = cb; t.delay = d; return 7; },
+    clearTimeout(id) { t.cleared.push(id); },
+  });
+}
+
+test('fetchWithTimeout aborts and rejects on timeout even if fetch ignores the signal', async () => {
+  const timer = stubTimer();
+  let sig;
+  const p = fetchWithTimeout((_u, init) => { sig = init.signal; return new Promise(() => {}); }, 'x', { cache: 'no-store' }, { timer });
+  assert.equal(sig.aborted, false);
+  assert.equal(timer.delay, REFETCH_TIMEOUT_MS);
+  assert.ok(REFETCH_TIMEOUT_MS < REFRESH_INTERVAL_MS);
+  timer.cb();
+  await assert.rejects(p, /timed out/);
+  assert.equal(sig.aborted, true);
+});
+
+test('fetchWithTimeout passes through, keeps init, clears the timer', async () => {
+  const timer = stubTimer();
+  let seen;
+  const res = await fetchWithTimeout((u, init) => { seen = init; return Promise.resolve({ ok: true }); }, 'x', { cache: 'no-store' }, { timer });
+  assert.deepEqual(res, { ok: true });
+  assert.equal(seen.cache, 'no-store');
+  assert.deepEqual(timer.cleared, [7]);
+  const t2 = stubTimer();
+  await assert.rejects(fetchWithTimeout(() => Promise.reject(new Error('boom')), 'x', {}, { timer: t2 }), /boom/);
+  assert.deepEqual(t2.cleared, [7]);
+});
+
+test('poller recovers after a hung refetch times out', async () => {
+  const s = setup();
+  const timer = stubTimer();
+  const run = () => { s.calls.n++; return fetchWithTimeout(() => new Promise(() => {}), 'x', {}, { timer }); };
+  startPoller({ run, timer: s.timer, doc: s.doc, now: s.now });
+  s.t.cb();
+  s.t.cb();
+  assert.equal(s.calls.n, 1);
+  timer.cb();
+  await flush();
+  s.t.cb();
+  assert.equal(s.calls.n, 2);
 });
 
 test('refresh.js stays DOM-free', () => {

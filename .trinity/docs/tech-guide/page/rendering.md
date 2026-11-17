@@ -27,11 +27,11 @@ The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response
 
 ### Refresh
 
-`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header is refreshed; if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only.
+`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header is refreshed; if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only. Each fetch, including reading the response body, is aborted after `REFETCH_TIMEOUT_MS` (30000) and counts as a failed fetch: on a refresh it warns and keeps the last board (pending clears); a hung first load shows the first-load error.
 
 ## `src/refresh.js`
 
-Pure, DOM-free. Exports `REFRESH_INTERVAL_MS` (300000), `hasChanged(last, next)` and `startPoller({ run, intervalMs, timer, doc, now })`, which returns `{ stop }`. `timer` provides `setInterval`/`clearInterval`. Ticks are skipped while `doc.visibilityState` is `hidden`; when the tab becomes visible and at least one interval has passed since the last fetch, a catch-up run fires. Overlapping runs are skipped and run errors never stop the poller.
+Pure, DOM-free. Exports `REFRESH_INTERVAL_MS` (300000), `REFETCH_TIMEOUT_MS` (30000), `fetchWithTimeout(fetchFn, url, init, { timeoutMs, timer })` (aborts via `AbortController` and rejects on its own when `timer.setTimeout` fires, whether or not the fetch honours the signal), `hasChanged(last, next)` and `startPoller({ run, intervalMs, timer, doc, now })`, which returns `{ stop }`. `timer` provides `setInterval`/`clearInterval`. Ticks are skipped while `doc.visibilityState` is `hidden`; when the tab becomes visible and at least one interval has passed since the last fetch, a catch-up run fires. Overlapping runs are skipped and run errors never stop the poller.
 
 ## Head metadata
 
