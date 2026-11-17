@@ -31,7 +31,7 @@ The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response
 
 ## `src/refresh.js`
 
-Pure, DOM-free. Exports `REFRESH_INTERVAL_MS` (300000), `hasChanged(last, next)` and `startPoller({ run, intervalMs, timer, doc, now })`, which returns `{ stop }`. `timer` provides `every`/`cancel`. Ticks are skipped while `doc.visibilityState` is `hidden`; when the tab becomes visible and at least one interval has passed since the last fetch, a catch-up run fires. Overlapping runs are skipped and run errors never stop the poller.
+Pure, DOM-free. Exports `REFRESH_INTERVAL_MS` (300000), `hasChanged(last, next)` and `startPoller({ run, intervalMs, timer, doc, now })`, which returns `{ stop }`. `timer` provides `setInterval`/`clearInterval`. Ticks are skipped while `doc.visibilityState` is `hidden`; when the tab becomes visible and at least one interval has passed since the last fetch, a catch-up run fires. Overlapping runs are skipped and run errors never stop the poller.
 
 ## Head metadata
 

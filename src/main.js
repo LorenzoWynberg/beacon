@@ -137,7 +137,7 @@ try {
   lastStatus = status;
   startPoller({
     run: refetch,
-    timer: { every: (cb, ms) => setInterval(cb, ms), cancel: (id) => clearInterval(id) },
+    timer: { setInterval: (cb, ms) => setInterval(cb, ms), clearInterval: (id) => clearInterval(id) },
     doc: document,
     now: Date.now,
   });

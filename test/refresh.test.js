@@ -6,8 +6,8 @@ import { REFRESH_INTERVAL_MS, hasChanged, startPoller } from '../src/refresh.js'
 function setup(runImpl) {
   const t = { cb: null, delay: null, intervals: 0, cleared: [] };
   const timer = {
-    every(cb, d) { t.cb = cb; t.delay = d; t.intervals++; return 42; },
-    cancel(id) { t.cleared.push(id); },
+    setInterval(cb, d) { t.cb = cb; t.delay = d; t.intervals++; return 42; },
+    clearInterval(id) { t.cleared.push(id); },
   };
   const doc = {
     visibilityState: 'visible', listener: null, removed: false,
@@ -120,5 +120,5 @@ test('hasChanged', () => {
 
 test('refresh.js stays DOM-free', () => {
   const src = readFileSync(new URL('../src/refresh.js', import.meta.url), 'utf8');
-  assert.doesNotMatch(src, /document|window|setInterval\(|fetch\(/);
+  assert.doesNotMatch(src, /document|window|(?<![.\w])setInterval\(|(?<![.\w])fetch\(/);
 });

@@ -35,13 +35,13 @@ export function startPoller({ run, intervalMs = REFRESH_INTERVAL_MS, timer, doc,
     if (doc.visibilityState === 'visible' && now() - lastFetch >= intervalMs) fire();
   }
 
-  const id = timer.every(tick, intervalMs);
+  const id = timer.setInterval(tick, intervalMs);
   doc.addEventListener('visibilitychange', onVis);
 
   return {
     stop() {
       stopped = true;
-      timer.cancel(id);
+      timer.clearInterval(id);
       doc.removeEventListener('visibilitychange', onVis);
     },
   };
