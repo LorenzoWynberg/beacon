@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.0 - 2026-11-17
+
+### New
+
+#### The status board now updates itself
+
+An open status page now keeps itself current. Once the board has loaded, it re-fetches `status.json` every 5 minutes and shows any change you've published, with no reload. A wall display or a tab left open overnight now matches what's in the repo. After you commit and push to `main`, an open page shows the update within about 5 minutes of Pages publishing it.
+
+When `status.json` hasn't changed, the service list is left alone. Only the "Updated" age line and the stale-status banner are refreshed, so the relative time keeps counting and the stale warning appears or clears on time. If the banner text is the same as before, the banner isn't replaced, so screen readers don't announce it again on every check.
+
+In a hidden background tab, the board skips its scheduled checks. When you switch back to the tab and at least 5 minutes have passed since the last check, it fetches right away.
+
+### Improved
+
+#### A failed refresh never blanks a good board
+
+If a refresh fails because of a network error, a bad response or a file that won't parse, the board keeps showing the last good status and tries again on the next check. The red "Status unavailable" box now appears only when the page can't load the status the first time it opens.
+
+#### A hung request no longer freezes updates
+
+Each request for `status.json`, including reading the response, now gives up after 30 seconds. Before this, a request that never answered could stop all later updates without any sign. Now it counts as an ordinary failed refresh and the next check runs as normal. On the first page load, a request that hangs now ends in the "Status unavailable" message instead of a page that never finishes loading.
+
 ## 0.5.0 - 2026-11-17
 
 ### New: dark mode for the status board
