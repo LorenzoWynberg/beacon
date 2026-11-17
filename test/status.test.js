@@ -161,3 +161,65 @@ test('formatSince mirrors formatRelativeAge and returns null when unusable', () 
   assert.equal(formatSince(ahead(301), now), null);
   assert.equal(formatSince(ahead(300), now), 'just now');
 });
+
+import { uptimeOverWindow, formatUptime } from '../src/status.js';
+
+const histJson = (status, extra = {}) => JSON.stringify({ services: [{ name: 'A', status: { state: 'up', since: ago(3600), ...status } }, { name: 'B', status: { state: 'up' } }], ...extra });
+
+test('parseStatus keeps valid history with normalised state', () => {
+  const h = [{ state: 'UP', since: ago(7200) }, { state: 'junk', since: ago(5400) }];
+  const s = parseStatus(histJson({ history: h })).services;
+  assert.deepEqual(s[0].history, [{ state: 'up', since: ago(7200) }, { state: 'unknown', since: ago(5400) }]);
+  assert.equal('history' in s[1], false);
+  assert.deepEqual(parseStatus(histJson({ history: [] })).services[0].history, []);
+});
+
+test('parseStatus drops invalid history as a whole', () => {
+  const ok = { state: 'up', since: ago(7200) };
+  const bad = [
+    [null], ['x'], [[]], [{ state: 'up' }], [{ state: 'up', since: 'nope' }],
+    [{ state: 'up', since: ago(5000) }, ok], [ok, ok], [{ state: 'up', since: ago(3600) }], [{ state: 'up', since: ago(60) }], 'nope',
+  ];
+  for (const history of bad) {
+    const s = parseStatus(histJson({ history })).services;
+    assert.equal('history' in s[0], false);
+    assert.equal(s[0].status, 'up');
+    assert.equal(s[0].since, ago(3600));
+  }
+  const noSince = parseStatus(JSON.stringify({ services: [{ name: 'A', status: { state: 'up', history: [ok] } }] })).services[0];
+  assert.equal('history' in noSince, false);
+  assert.equal(parseStatus(JSON.stringify({ services: [{ name: 'A', status: 'up', history: [ok] }] })).services[0].status, 'invalid');
+});
+
+test('uptimeOverWindow computes exact percentages and nulls', () => {
+  const H = 3600;
+  const svc = (o) => ({ name: 'A', status: 'up', since: ago(2 * H), ...o });
+  const hist = [{ state: 'up', since: ago(30 * H) }, { state: 'down', since: ago(10 * H) }];
+  assert.ok(Math.abs(uptimeOverWindow(svc({ history: hist, since: ago(9 * H) }), now) - 100 * 23 / 24) < 1e-9);
+  assert.equal(uptimeOverWindow(svc({ since: ago(30 * H) }), now), 100);
+  assert.equal(uptimeOverWindow(svc({ status: 'down', since: ago(30 * H) }), now), 0);
+  assert.equal(uptimeOverWindow(svc({ since: ago(2 * H) }), now), null);
+  assert.equal(uptimeOverWindow(svc({ history: [{ state: 'up', since: ago(10 * H) }] }), now), null);
+  const unk = [{ state: 'up', since: ago(30 * H) }, { state: 'unknown', since: ago(12 * H) }];
+  assert.ok(Math.abs(uptimeOverWindow(svc({ history: unk, since: ago(6 * H), status: 'down' }), now) - 100 * 12 / 18) < 1e-9);
+  assert.equal(uptimeOverWindow(svc({ status: 'unknown', since: ago(30 * H) }), now), null);
+  assert.equal(uptimeOverWindow(svc({ status: 'invalid', since: ago(30 * H) }), now), null);
+  assert.equal(uptimeOverWindow({ name: 'A', status: 'up' }, now), null);
+  assert.equal(uptimeOverWindow(svc({ since: ahead(H) }), now), null);
+  assert.equal(uptimeOverWindow(svc({ since: ago(30 * H) }), 'bad'), null);
+  assert.equal(uptimeOverWindow(svc({ since: ago(30 * H) }), now.getTime()), 100);
+  assert.equal(uptimeOverWindow(svc({ since: ago(2 * H) }), now, H * 1000), 100);
+  const frozen = Object.freeze(svc({ history: Object.freeze(hist), since: ago(9 * H) }));
+  assert.doesNotThrow(() => uptimeOverWindow(frozen, now));
+});
+
+test('formatUptime rounds down to one decimal', () => {
+  assert.equal(formatUptime(null), null);
+  assert.equal(formatUptime(NaN), null);
+  assert.equal(formatUptime(99.96), '99.9% up · 24 h');
+  assert.equal(formatUptime(100), '100.0% up · 24 h');
+  assert.equal(formatUptime(99.8), '99.8% up · 24 h');
+  assert.equal(formatUptime(28.999999999999996), '29.0% up · 24 h');
+  assert.equal(formatUptime(0), '0.0% up · 24 h');
+  assert.equal(formatUptime(100 * 23 / 24), '95.8% up · 24 h');
+});
