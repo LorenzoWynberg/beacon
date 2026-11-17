@@ -104,14 +104,17 @@ function showError() {
 
 async function fetchText() {
   const timer = { setTimeout: (cb, ms) => setTimeout(cb, ms), clearTimeout: (id) => clearTimeout(id) };
-  const res = await fetchWithTimeout(
-    (url, init) => fetch(url, init),
+  // The body is read inside the timed fetch so a stalled body is aborted too.
+  return fetchWithTimeout(
+    async (url, init) => {
+      const res = await fetch(url, init);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    },
     `status.json?t=${Date.now()}`,
     { cache: 'no-store' },
     { timer },
   );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
 }
 
 let lastText;
