@@ -2,7 +2,16 @@ const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
+export const FUTURE_TOLERANCE_MS = 5 * 60_000;
+
+export function isFutureTimestamp(updated, now, toleranceMs = FUTURE_TOLERANCE_MS) {
+  if (typeof updated !== 'string') return false;
+  const diff = new Date(updated).getTime() - new Date(now).getTime();
+  return diff > toleranceMs;
+}
+
 export function formatRelativeAge(updated, now) {
+  if (isFutureTimestamp(updated, now)) return 'unknown';
   if (typeof updated !== 'string') return 'unknown';
   const then = new Date(updated).getTime();
   const seconds = Math.floor((new Date(now).getTime() - then) / 1000);
@@ -15,6 +24,7 @@ export function formatRelativeAge(updated, now) {
 }
 
 export function isStale(updated, now) {
+  if (isFutureTimestamp(updated, now)) return true;
   if (typeof updated !== 'string') return true;
   const then = new Date(updated).getTime();
   const diff = new Date(now).getTime() - then;

@@ -18,6 +18,18 @@ The sample `status.json` now uses groups: Website is under **Web**, API and Data
 
 The docs now cover the grouped board. A new **Grouping services** guide explains the `group` field and the rules for merging names, ordering groups and the **Other** heading. The `status.json` field reference and the README both list `services[].group`, and the technical guide explains how the page renders grouped and flat boards.
 
+## 0.3.1 - 2026-11-16
+
+### Fixed
+
+**A future `updated` timestamp no longer reads as fresh.** Before this release, a `status.json` whose `updated` time was in the future showed as "just now" and never raised the stale banner, so the board claimed freshness it couldn't confirm. Now, if `updated` is more than 5 minutes ahead of the viewer's clock, the header reads "Updated time unknown" and the "This status may be stale" banner appears, with the last updated time given as unknown. The raw timestamp stays in the `time` element's `datetime` attribute, so you can still inspect it.
+
+**Small clock differences are still tolerated.** A timestamp up to 5 minutes ahead, including exactly 5 minutes, counts as normal clock skew and displays as before (for example, "just now"). Past timestamps work exactly as they did: the banner appears only when `updated` is missing, can't be parsed, or is more than 24 hours old.
+
+### Changed
+
+The README now lists the future-timestamp rule among the conditions that trigger the stale banner. If you publish `status.json` from a machine whose clock runs fast, keep it within 5 minutes of real time to avoid showing the stale banner.
+
 ## 0.3.0 - 2026-11-16
 
 ### New
