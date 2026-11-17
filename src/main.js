@@ -1,4 +1,4 @@
-import { hasChanged, startPoller } from './refresh.js';
+import { fetchWithTimeout, hasChanged, startPoller } from './refresh.js';
 import { formatRelativeAge, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
 
 const list = document.getElementById('services');
@@ -103,7 +103,13 @@ function showError() {
 }
 
 async function fetchText() {
-  const res = await fetch(`status.json?t=${Date.now()}`, { cache: 'no-store' });
+  const timer = { setTimeout: (cb, ms) => setTimeout(cb, ms), clearTimeout: (id) => clearTimeout(id) };
+  const res = await fetchWithTimeout(
+    (url, init) => fetch(url, init),
+    `status.json?t=${Date.now()}`,
+    { cache: 'no-store' },
+    { timer },
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
 }
