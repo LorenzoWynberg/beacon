@@ -15,5 +15,6 @@ Edit `status.json`, commit and push to `main`. GitHub Pages can take up to about
 - `services[].name`: display name.
 - `services[].status`: `up` or `down` (case and surrounding spaces ignored); anything else shows as Unknown.
 - `services[].note`: optional short text under the service.
+- `services[].group`: optional heading the service is listed under. See [Grouping services](groups.md).
 
 If `updated` is missing, invalid or more than 24 hours old, the page shows a stale banner. If `status.json` is missing or malformed, it shows "Status unavailable".
