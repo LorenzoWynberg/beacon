@@ -22,7 +22,7 @@ spacing:
 
 # Design system — Status board
 
-Single light theme. The full revision values are mirrored as custom properties in
+Light and dark facets. Light is the default in `:root`; dark applies from the OS preference or the header toggle (`data-theme`). In dark, `--neutral`/`--on-neutral` map to the dark secondary/on-secondary roles. The full revision values are mirrored as custom properties in
 `styles.css` (colour roles, `--text-*`/`--leading-*`, `--spacing*`, `--radius*`,
 `--elevation-*`, `--duration-*`/`--ease-*`). Drive every styled property off those
 tokens; do not hardcode a value a token covers.
@@ -52,6 +52,24 @@ tokens; do not hardcode a value a token covers.
 --border: oklch(0.9 0.005 265);
 --input: oklch(0.86 0.005 265);
 --ring: oklch(0.55 0.15 260);
+```
+
+## Colors (dark)
+
+```css
+--background: oklch(0.18 0.005 265);
+--surface: oklch(0.22 0.005 265);
+--foreground: oklch(0.96 0.003 265);
+--muted: oklch(0.72 0.01 265);
+--danger: oklch(0.68 0.18 25);
+--on-danger: oklch(0.16 0.03 25);
+--success: oklch(0.72 0.15 150);
+--on-success: oklch(0.16 0.03 150);
+--neutral: oklch(0.6 0.02 265);
+--on-neutral: oklch(0.15 0.005 265);
+--border: oklch(0.32 0.006 265);
+--ring: oklch(0.72 0.13 255);
+--elevation-sm: 0 0 3px rgb(0 0 0 / 0.28);
 ```
 
 ## Typography

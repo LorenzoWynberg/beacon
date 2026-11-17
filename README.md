@@ -29,6 +29,10 @@ tolerated as clock skew), a banner reads
 "This status may be stale", and the header shows "Updated time unknown". If `status.json` is missing or malformed (invalid
 JSON, not an object, or `services` not an array), the page shows "Status unavailable".
 
+## Dark mode
+
+The page follows your OS light/dark preference. A "Dark mode" button in the header overrides it and remembers the choice in this browser.
+
 ## Updating the page
 
 Edit `status.json`, commit, push to `main`. Pages may take up to ~10 minutes to publish.
