@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 - 2026-11-17
+
+### Highlights
+
+#### Least reliable first sort
+
+The status board header has a new **Least reliable first** button. When it's on, services are listed by their 24-hour uptime, lowest first, so the flakiest services are at the top. Services with no uptime figure go last. Services with equal uptime keep their `status.json` order. On grouped boards, the sort works inside each group and leaves the group order alone.
+
+The sort is off by default, so the board still opens in the order set in `status.json`, and turning it off restores that order. The choice isn't remembered between page loads. While the sort is on, the board re-sorts as uptime figures change.
+
 ## 1.1.0 - 2026-11-17
 
 ### New: 24-hour uptime on each status card
