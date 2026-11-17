@@ -1,3 +1,4 @@
+import { fetchWithTimeout, hasChanged, startPoller } from './refresh.js';
 import { formatRelativeAge, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
 
 const list = document.getElementById('services');
@@ -23,8 +24,7 @@ function serviceItem(s) {
   return li;
 }
 
-function render({ updated, services }) {
-  const now = Date.now();
+function renderHeader(updated, now) {
   const updatedAge = formatRelativeAge(updated, now);
   if (updatedAge === 'unknown' && isFutureTimestamp(updated, now)) {
     updatedEl.textContent = 'Updated ';
@@ -44,16 +44,26 @@ function render({ updated, services }) {
     updatedEl.append(time);
   }
 
-  if (isStale(updated, now)) {
-    const age = updatedAge;
-    const banner = document.createElement('p');
-    banner.className = 'banner';
-    banner.textContent = age === 'unknown'
-      ? 'This status may be stale — last updated time unknown'
-      : `This status may be stale — last updated ${age}`;
-    notices.append(banner);
+  const existing = notices.querySelector('p.banner');
+  if (!isStale(updated, now)) {
+    if (existing) existing.remove();
+    return;
   }
+  const text = updatedAge === 'unknown'
+    ? 'This status may be stale — last updated time unknown'
+    : `This status may be stale — last updated ${updatedAge}`;
+  if (existing && existing.textContent === text) return;
+  const banner = document.createElement('p');
+  banner.className = 'banner';
+  banner.textContent = text;
+  if (existing) existing.replaceWith(banner);
+  else notices.append(banner);
+}
 
+function renderServices(services) {
+  document.querySelectorAll('main > section.group').forEach((el) => el.remove());
+  if (!list.isConnected) notices.after(list);
+  list.replaceChildren();
   const { grouped, groups } = groupServices(services);
   if (!grouped) {
     list.append(...services.map(serviceItem));
@@ -92,10 +102,54 @@ function showError() {
   notices.append(box);
 }
 
+async function fetchText() {
+  const timer = { setTimeout: (cb, ms) => setTimeout(cb, ms), clearTimeout: (id) => clearTimeout(id) };
+  // The body is read inside the timed fetch so a stalled body is aborted too.
+  return fetchWithTimeout(
+    async (url, init) => {
+      const res = await fetch(url, init);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    },
+    `status.json?t=${Date.now()}`,
+    { cache: 'no-store' },
+    { timer },
+  );
+}
+
+let lastText;
+let lastStatus;
+
+async function refetch() {
+  try {
+    const text = await fetchText();
+    if (!hasChanged(lastText, text)) {
+      renderHeader(lastStatus.updated, Date.now());
+      return;
+    }
+    const status = parseStatus(text);
+    renderHeader(status.updated, Date.now());
+    renderServices(status.services);
+    lastText = text;
+    lastStatus = status;
+  } catch (err) {
+    console.warn('status.json refresh failed:', err);
+  }
+}
+
 try {
-  const res = await fetch(`status.json?t=${Date.now()}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  render(parseStatus(await res.text()));
+  const text = await fetchText();
+  const status = parseStatus(text);
+  renderHeader(status.updated, Date.now());
+  renderServices(status.services);
+  lastText = text;
+  lastStatus = status;
+  startPoller({
+    run: refetch,
+    timer: { setInterval: (cb, ms) => setInterval(cb, ms), clearInterval: (id) => clearInterval(id) },
+    doc: document,
+    now: Date.now,
+  });
 } catch (err) {
   console.warn('status.json could not be loaded:', err);
   showError();
