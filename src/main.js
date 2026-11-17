@@ -1,12 +1,20 @@
-import { formatRelativeAge, isStale, parseStatus } from './status.js';
+import { formatRelativeAge, isFutureTimestamp, isStale, parseStatus } from './status.js';
 
 const list = document.getElementById('services');
 const notices = document.getElementById('notices');
 const updatedEl = document.getElementById('updated');
 
 function render({ updated, services }) {
-  const updatedAge = formatRelativeAge(updated, Date.now());
-  if (updatedAge === 'unknown') {
+  const now = Date.now();
+  const updatedAge = formatRelativeAge(updated, now);
+  if (updatedAge === 'unknown' && isFutureTimestamp(updated, now)) {
+    updatedEl.textContent = 'Updated ';
+    const time = document.createElement('time');
+    time.setAttribute('datetime', String(updated));
+    time.title = new Date(updated).toLocaleString();
+    time.textContent = 'time unknown';
+    updatedEl.append(time);
+  } else if (updatedAge === 'unknown') {
     updatedEl.textContent = 'Updated time unknown';
   } else {
     updatedEl.textContent = 'Updated ';
@@ -17,8 +25,8 @@ function render({ updated, services }) {
     updatedEl.append(time);
   }
 
-  if (isStale(updated, Date.now())) {
-    const age = formatRelativeAge(updated, Date.now());
+  if (isStale(updated, now)) {
+    const age = updatedAge;
     const banner = document.createElement('p');
     banner.className = 'banner';
     banner.textContent = age === 'unknown'

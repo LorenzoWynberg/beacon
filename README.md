@@ -20,7 +20,9 @@ plain HTML, CSS and ES modules, hosted on GitHub Pages from `main` at `/`.
 - `services[].status`: `up` or `down`, case- and whitespace-insensitive. Any other value shows a grey `Unknown` badge.
 - `services[].note`: optional short text.
 
-If `updated` is missing, unparseable or more than 24 hours old, a banner reads
+If `updated` is missing, unparseable, more than 24 hours old, or more than
+5 minutes in the future relative to the viewer's clock (up to 5 minutes ahead is
+tolerated as clock skew), a banner reads
 "This status may be stale", and the header shows "Updated time unknown". If `status.json` is missing or malformed (invalid
 JSON, not an object, or `services` not an array), the page shows "Status unavailable".
 
