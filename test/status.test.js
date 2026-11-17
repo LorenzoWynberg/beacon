@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRelativeAge, isStale, normaliseStatus, parseStatus } from '../src/status.js';
+import { formatRelativeAge, isStale, groupServices, normaliseStatus, parseStatus } from '../src/status.js';
 
 const now = new Date('2026-11-16T18:00:00Z');
 const ago = (s) => new Date(now.getTime() - s * 1000).toISOString();
@@ -59,4 +59,37 @@ test('parseStatus rejects malformed documents and normalises status', () => {
   const r = parseStatus('{"updated":"x","services":[{"name":"A","status":"degraded"},5]}');
   assert.equal(r.services[0].status, 'unknown');
   assert.deepEqual(r.services[1], { name: '', status: 'unknown' });
+});
+
+const svc = (name, group) => ({ name, status: 'up', ...(group === undefined ? {} : { group }) });
+
+test('groupServices is flat when no service has a group', () => {
+  const services = [svc('A'), svc('B')];
+  assert.deepEqual(groupServices(services), { grouped: false, groups: [{ name: null, services }] });
+});
+
+test('groupServices orders by first appearance and merges case/whitespace', () => {
+  const r = groupServices([svc('1', 'Web'), svc('2', 'API'), svc('3', 'web'), svc('4', 'api')]);
+  assert.equal(r.grouped, true);
+  assert.deepEqual(r.groups.map((g) => [g.name, g.services.map((s) => s.name)]), [['Web', ['1', '3']], ['API', ['2', '4']]]);
+  const padded = groupServices([svc('1', 'Web'), svc('2', '  WEB ')]);
+  assert.deepEqual(padded.groups.map((g) => [g.name, g.services.map((s) => s.name)]), [['Web', ['1', '2']]]);
+});
+
+test('groupServices puts ungrouped and explicit other last', () => {
+  const r = groupServices([svc('1'), svc('2', 'Other'), svc('3', 'Web'), svc('4', '  '), svc('5', 'other'), svc('6', 7)]);
+  assert.deepEqual(r.groups.map((g) => g.name), ['Web', 'Other']);
+  assert.deepEqual(r.groups[1].services.map((s) => s.name), ['1', '2', '4', '5', '6']);
+});
+
+test('groupServices omits Other when all are grouped', () => {
+  assert.deepEqual(groupServices([svc('1', 'A'), svc('2', 'B')]).groups.map((g) => g.name), ['A', 'B']);
+});
+
+test('parseStatus keeps trimmed group and omits blank or non-string', () => {
+  const r = parseStatus(JSON.stringify({ services: [
+    { name: 'a', group: ' Web ' }, { name: 'b', group: '  ' }, { name: 'c', group: 5 }, { name: 'd' },
+  ] }));
+  assert.equal(r.services[0].group, 'Web');
+  for (const s of r.services.slice(1)) assert.equal('group' in s, false);
 });
