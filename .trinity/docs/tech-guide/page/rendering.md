@@ -23,7 +23,15 @@ The `updated` value is shown in a `time` element whose title holds the local tim
 
 When `isStale` is true, a `p.banner` is added to `#notices` saying the status may be stale, with the age or "last updated time unknown".
 
-The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response, a fetch failure or a parse failure logs `console.warn`, clears the page (`showError` also removes any `main > section.group`) and shows a `role="alert"` box titled "Status unavailable" in `#notices`.
+The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response, a fetch failure or a parse failure logs `console.warn`, on the first load clears the page (`showError` also removes any `main > section.group`) and shows a `role="alert"` box titled "Status unavailable" in `#notices`.
+
+### Refresh
+
+`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header is refreshed; if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only.
+
+## `src/refresh.js`
+
+Pure, DOM-free. Exports `REFRESH_INTERVAL_MS` (300000), `hasChanged(last, next)` and `startPoller({ run, intervalMs, timer, doc, now })`, which returns `{ stop }`. `timer` provides `every`/`cancel`. Ticks are skipped while `doc.visibilityState` is `hidden`; when the tab becomes visible and at least one interval has passed since the last fetch, a catch-up run fires. Overlapping runs are skipped and run errors never stop the poller.
 
 ## Head metadata
 
