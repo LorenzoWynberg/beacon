@@ -30,3 +30,12 @@ The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response
 `index.html` sets the title `beacon — service status`, a `meta name="description"`, and an inline SVG favicon (a green circle) as a `data:` URI, so no icon file is served.
 
 `main.js` is not unit tested; `status.js` functions, including `isStale` boundaries, are.
+
+## Theming
+
+`styles.css` holds the light facet in `:root` and overrides the colour tokens for dark in two identical blocks: `@media (prefers-color-scheme: dark)` on `:root:not([data-theme="light"])`, and `:root[data-theme="dark"]`. Keep the two blocks identical. In dark, `--neutral` and `--on-neutral` map to the design system's secondary and on-secondary roles.
+
+A classic inline script in the `<head>`, before the stylesheet, reads `localStorage['beacon-theme']` and sets `data-theme` on `<html>` when it is `light` or `dark`, so a stored choice paints without a flash.
+
+`src/theme.js` is DOM-free and covered by `test/theme.test.js`: `readStoredTheme`, `writeStoredTheme` (both survive blocked storage), `resolveTheme(stored, prefersDark)` and `nextTheme`. `src/theme-toggle.js` wires `#theme-toggle` (hidden until the script runs), sets `aria-pressed` and the visible text, and follows OS changes only while no choice has been made. Precedence: stored choice, then OS preference.
+
