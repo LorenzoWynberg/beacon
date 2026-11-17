@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRelativeAge, isStale, groupServices, normaliseStatus, parseStatus } from '../src/status.js';
+import { formatRelativeAge, isFutureTimestamp, isStale, groupServices, normaliseStatus, parseStatus } from '../src/status.js';
 
 const now = new Date('2026-11-16T18:00:00Z');
 const ago = (s) => new Date(now.getTime() - s * 1000).toISOString();
+const ahead = (s) => new Date(now.getTime() + s * 1000).toISOString();
 
 test('formatRelativeAge boundaries', () => {
   const cases = [
@@ -92,4 +93,25 @@ test('parseStatus keeps trimmed group and omits blank or non-string', () => {
   ] }));
   assert.equal(r.services[0].group, 'Web');
   for (const s of r.services.slice(1)) assert.equal('group' in s, false);
+});
+
+test('future timestamps beyond 5 min tolerance are untrustworthy', () => {
+  for (const s of [240, 300]) {
+    assert.equal(isStale(ahead(s), now), false);
+    assert.equal(formatRelativeAge(ahead(s), now), 'just now');
+  }
+  for (const s of [301, 360, 86400]) {
+    assert.equal(isStale(ahead(s), now), true);
+    assert.equal(formatRelativeAge(ahead(s), now), 'unknown');
+  }
+});
+
+test('isFutureTimestamp', () => {
+  assert.equal(isFutureTimestamp(ahead(301), now), true);
+  assert.equal(isFutureTimestamp(ahead(300), now), false);
+  assert.equal(isFutureTimestamp(ago(100), now), false);
+  for (const v of [undefined, null, 'nope', 5]) assert.equal(isFutureTimestamp(v, now), false);
+  assert.equal(isFutureTimestamp(ahead(61), now, 60_000), true);
+  assert.equal(isFutureTimestamp(ahead(60), now, 60_000), false);
+  assert.equal(isFutureTimestamp(ahead(1000), 'x'), false);
 });

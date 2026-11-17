@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.4.0 - 2026-11-16
+
+### New: service groups
+
+You can now list related services together under a heading. Give a service an optional `group` in `status.json`, for example `{ "name": "Database", "group": "API", "status": "down" }`, and the board shows each group as its own titled section, one after another. Screen readers announce each section's list by its heading.
+
+Grouping is meant to be forgiving. Group names are trimmed and matched case-insensitively, so `Web`, `web` and ` WEB ` all end up in one group, shown with the spelling used first in the file. Groups appear in the order they first appear in the file. Services with no group, and services in a group called "Other" (in any case), go under a final **Other** heading. That heading only appears when it has services in it. A blank or non-text `group` value is ignored.
+
+### Unchanged: boards without groups
+
+Grouping is opt-in. If no service in your `status.json` has a `group`, the page shows the same single flat list as before, with no headings, so you don't need to change existing files.
+
+The sample `status.json` now uses groups: Website is under **Web**, API and Database are under **API**, and Email, which has no group, appears under **Other**.
+
+### Improved: documentation
+
+The docs now cover the grouped board. A new **Grouping services** guide explains the `group` field and the rules for merging names, ordering groups and the **Other** heading. The `status.json` field reference and the README both list `services[].group`, and the technical guide explains how the page renders grouped and flat boards.
+
+## 0.3.1 - 2026-11-16
+
+### Fixed
+
+**A future `updated` timestamp no longer reads as fresh.** Before this release, a `status.json` whose `updated` time was in the future showed as "just now" and never raised the stale banner, so the board claimed freshness it couldn't confirm. Now, if `updated` is more than 5 minutes ahead of the viewer's clock, the header reads "Updated time unknown" and the "This status may be stale" banner appears, with the last updated time given as unknown. The raw timestamp stays in the `time` element's `datetime` attribute, so you can still inspect it.
+
+**Small clock differences are still tolerated.** A timestamp up to 5 minutes ahead, including exactly 5 minutes, counts as normal clock skew and displays as before (for example, "just now"). Past timestamps work exactly as they did: the banner appears only when `updated` is missing, can't be parsed, or is more than 24 hours old.
+
+### Changed
+
+The README now lists the future-timestamp rule among the conditions that trigger the stale banner. If you publish `status.json` from a machine whose clock runs fast, keep it within 5 minutes of real time to avoid showing the stale banner.
+
 ## 0.3.0 - 2026-11-16
 
 ### New
