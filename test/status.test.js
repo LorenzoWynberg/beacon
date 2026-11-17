@@ -28,7 +28,7 @@ test('formatRelativeAge handles future and invalid input', () => {
 test('parseStatus returns updated and services, note only when present', () => {
   const r = parseStatus(JSON.stringify({
     updated: '2026-11-16T18:00:00+00:00',
-    services: [{ name: 'A', status: 'up' }, { name: 'B', status: 'down', note: 'x' }],
+    services: [{ name: 'A', status: { state: 'up' } }, { name: 'B', status: { state: 'down' }, note: 'x' }],
   }));
   assert.equal(r.updated, '2026-11-16T18:00:00+00:00');
   assert.deepEqual(r.services[0], { name: 'A', status: 'up' });
@@ -57,7 +57,7 @@ test('parseStatus rejects malformed documents and normalises status', () => {
   assert.throws(() => parseStatus('[]'), /object/);
   assert.throws(() => parseStatus('"x"'), /object/);
   assert.throws(() => parseStatus('{"services":{}}'), /array/);
-  const r = parseStatus('{"updated":"x","services":[{"name":"A","status":"degraded"},5]}');
+  const r = parseStatus('{"updated":"x","services":[{"name":"A","status":{"state":"degraded"}},5]}');
   assert.equal(r.services[0].status, 'unknown');
   assert.deepEqual(r.services[1], { name: '', status: 'unknown' });
 });

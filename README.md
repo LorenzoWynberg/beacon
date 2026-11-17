@@ -9,15 +9,17 @@ plain HTML, CSS and ES modules, hosted on GitHub Pages from `main` at `/`.
 {
   "updated": "2026-11-16T18:00:00+00:00",
   "services": [
-    { "name": "Website", "status": "up" },
-    { "name": "Database", "status": "down", "note": "Investigating." }
+    { "name": "Website", "status": { "state": "up", "since": "2026-11-16T15:00:00+00:00" } },
+    { "name": "Database", "status": { "state": "down", "since": "2026-11-16T14:30:00+00:00" }, "note": "Investigating." }
   ]
 }
 ```
 
 - `updated`: ISO 8601 timestamp with offset.
 - `services[].name`: display name. A missing or blank name shows "Unnamed service".
-- `services[].status`: `up` or `down`, case- and whitespace-insensitive. Any other value shows a grey `Unknown` badge.
+- `services[].status.state`: `up` or `down`, case- and whitespace-insensitive. Any other value shows a grey `Unknown` badge.
+- `services[].status.since`: optional ISO 8601 timestamp with offset, shown as `· since 3 h ago`. A missing or unparseable value, or one more than 5 minutes in the future, shows no since text.
+- A plain string `status` (the old format) shows an `Invalid status` badge on that row only; the other rows are unaffected.
 - `services[].note`: optional short text.
 - `services[].group`: optional group name, trimmed. Names merge case-insensitively under the first-seen spelling, and groups appear in order of first appearance. Services with no group go under a final "Other" heading. A file with no groups renders as one flat list.
 
