@@ -19,6 +19,7 @@ plain HTML, CSS and ES modules, hosted on GitHub Pages from `main` at `/`.
 - `services[].name`: display name. A missing or blank name shows "Unnamed service".
 - `services[].status`: `up` or `down`, case- and whitespace-insensitive. Any other value shows a grey `Unknown` badge.
 - `services[].note`: optional short text.
+- `services[].group`: optional group name, trimmed. Names merge case-insensitively under the first-seen spelling, and groups appear in order of first appearance. Services with no group go under a final "Other" heading. A file with no groups renders as one flat list.
 
 If `updated` is missing, unparseable or more than 24 hours old, a banner reads
 "This status may be stale", and the header shows "Updated time unknown". If `status.json` is missing or malformed (invalid
