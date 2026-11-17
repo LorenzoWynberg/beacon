@@ -91,7 +91,8 @@ header {
   justify-content: space-between;
   gap: var(--spacing-2) var(--spacing-3);
 }
-header .theme-toggle {
+header .theme-toggle,
+header .sort-toggle {
   display: inline-block;
   padding: var(--spacing-1) var(--spacing-3);
   background: var(--surface);
@@ -103,6 +104,10 @@ header .theme-toggle {
   cursor: pointer;
 }
 .theme-toggle[hidden] { display: none; }
+header .sort-toggle[aria-pressed="true"] {
+  border-color: var(--foreground);
+  font-weight: 600;
+}
 
 .updated { flex-basis: 100%; }
 
