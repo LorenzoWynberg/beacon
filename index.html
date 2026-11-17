@@ -15,11 +15,13 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="beacon — service status">
     <meta name="twitter:description" content="Live up/down status for every Beacon service, at a glance.">
+    <script>try{var t=localStorage.getItem('beacon-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header>
       <h1>Service status</h1>
+      <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Dark mode" aria-pressed="false" hidden>Dark mode: off</button>
       <p id="updated" class="updated"></p>
     </header>
     <main>
@@ -27,5 +29,6 @@
       <ul id="services" class="services"></ul>
     </main>
     <script type="module" src="src/main.js"></script>
+    <script type="module" src="src/theme-toggle.js"></script>
   </body>
 </html>
