@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1 - 2026-11-17
+
+### Fixed
+
+**Blank service notes no longer leave an empty line on the status board.** A service whose note in `status.json` was an empty string, or only spaces, tabs or newlines, used to show an empty note line under its entry. Those notes are now dropped when the status file is read, so the service shows no note at all.
+
+### Improved
+
+**Service notes are trimmed.** Leading and trailing whitespace is removed from notes before they are shown. A note written as `"  degraded  "` now appears as `degraded`. This matches how service group names are already handled. Notes that aren't strings, such as numbers or `null`, are still ignored as before.
+
 ## 0.4.0 - 2026-11-16
 
 ### New: service groups

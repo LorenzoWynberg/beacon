@@ -6,7 +6,7 @@
 
 Pure functions, covered by `test/status.test.js`:
 
-- `parseStatus(text)` parses JSON and returns `{ updated, services }`. It throws when the text is not valid JSON, is not an object, or has no `services` array. Each service keeps `name` (empty string if not a string), `status` run through `normaliseStatus`, and, only when it is a string, `note`. It also keeps `group`, only when it is a string with non-blank content, stored trimmed.
+- `parseStatus(text)` parses JSON and returns `{ updated, services }`. It throws when the text is not valid JSON, is not an object, or has no `services` array. Each service keeps `name` (empty string if not a string), `status` run through `normaliseStatus`, and, only when it is a string with non-blank content, `note`, stored trimmed (blank, whitespace-only and non-string notes are omitted). It also keeps `group`, only when it is a string with non-blank content, stored trimmed.
 - `groupServices(services)` returns `{ grouped, groups }`. See [grouping](grouping.md) for the merge, ordering and `Other` rules.
 - `normaliseStatus(v)` trims and lowercases a string and returns `up` or `down`; anything else returns `unknown`.
 - `isFutureTimestamp(updated, now, toleranceMs = FUTURE_TOLERANCE_MS)` is true when `updated` is a string more than `toleranceMs` ahead of `now`; the default is 5 minutes, and exactly 5 minutes ahead is tolerated as clock skew.
