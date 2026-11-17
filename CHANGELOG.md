@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 - 2026-11-17
+
+### New: dark mode for the status board
+
+The status board now has a dark appearance. By default, the page opens in light or dark to match your device's setting, and switches on its own if you change that setting while the page is open and haven't picked a mode yourself.
+
+To pick a mode yourself, press the new **Dark mode** button in the header. It shows whether dark mode is on, reading "Dark mode: on" or "Dark mode: off", and works from the keyboard with Tab, then Enter or Space. Your choice is saved in this browser and comes back on later visits, taking priority over your device setting. A saved choice is applied before the page first draws, so it doesn't flash light before turning dark.
+
+The dark palette keeps the board easy to scan. Backgrounds and text stay neutral, and the green and red Up and Down badges remain the strongest colours on the page in both light and dark.
+
+### Good to know
+
+- If your browser blocks storage, the button still switches modes, but the choice lasts only until you close the page.
+- With JavaScript turned off, the button is hidden and the page follows your device setting.
+- The header layout has changed a little: the page title and the Dark mode button now share the top row, and the "Updated" line sits underneath on its own line.
+
 ## 0.4.0 - 2026-11-16
 
 ### New: service groups
