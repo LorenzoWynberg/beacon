@@ -1,9 +1,20 @@
 import { fetchWithTimeout, hasChanged, startPoller } from './refresh.js';
-import { formatRelativeAge, formatSince, groupServices, isFutureTimestamp, isStale, parseStatus } from './status.js';
+import { formatRelativeAge, formatSince, formatUptime, groupServices, isFutureTimestamp, isStale, parseStatus, uptimeOverWindow } from './status.js';
 
 const list = document.getElementById('services');
 const notices = document.getElementById('notices');
 const updatedEl = document.getElementById('updated');
+
+function uptimeText(s, now) {
+  return formatUptime(uptimeOverWindow(s, now));
+}
+
+function uptimeSpan(text) {
+  const span = document.createElement('span');
+  span.className = 'service__uptime';
+  span.textContent = text;
+  return span;
+}
 
 function serviceItem(s, now) {
   const li = document.createElement('li');
@@ -28,6 +39,8 @@ function serviceItem(s, now) {
     time.textContent = sinceAge;
     since.append('· since ', time);
     status.append(badge, ' ', since);
+    const uptime = uptimeText(s, now);
+    if (uptime !== null) status.append(' ', uptimeSpan(uptime));
     li.append(name, status);
   }
   if (s.note) {
@@ -109,6 +122,29 @@ function refreshSinceAges(now) {
   });
 }
 
+// Unchanged refetch: cards are in groupServices flat order, so pair them by index.
+function refreshUptimes(now) {
+  const services = groupServices(lastStatus.services).groups.flatMap((g) => g.services);
+  const cards = document.querySelectorAll('li.service');
+  if (cards.length !== services.length) return;
+  cards.forEach((card, i) => {
+    const status = card.querySelector('.service__status');
+    if (!status) return;
+    const text = uptimeText(services[i], now);
+    const span = status.querySelector('.service__uptime');
+    if (text === null) {
+      if (!span) return;
+      const prev = span.previousSibling;
+      if (prev && prev.nodeType === 3 && prev.textContent === ' ') prev.remove();
+      span.remove();
+    } else if (span) {
+      if (span.textContent !== text) span.textContent = text;
+    } else {
+      status.append(' ', uptimeSpan(text));
+    }
+  });
+}
+
 function showError() {
   updatedEl.textContent = '';
   notices.replaceChildren();
@@ -150,6 +186,7 @@ async function refetch() {
       const now = Date.now();
       renderHeader(lastStatus.updated, now);
       refreshSinceAges(now);
+      refreshUptimes(now);
       return;
     }
     const status = parseStatus(text);
