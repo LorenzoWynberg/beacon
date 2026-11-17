@@ -20,3 +20,5 @@ A single static page that lists named services with an Up or Down badge each, re
 - [Updating the status](user-guide/updating/status-json.md)
 - [Grouping services](user-guide/updating/groups.md)
 - [Dark mode](user-guide/viewing/theme.md)
+- [Least reliable first sort](tech-guide/page/sorting.md)
+- [Sorting the board](user-guide/viewing/sort.md)
