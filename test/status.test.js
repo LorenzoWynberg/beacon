@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRelativeAge, isFutureTimestamp, isStale, groupServices, normaliseStatus, parseStatus } from '../src/status.js';
+import { formatRelativeAge, formatSince, isFutureTimestamp, isStale, groupServices, normaliseStatus, parseStatus } from '../src/status.js';
 
 const now = new Date('2026-11-16T18:00:00Z');
 const ago = (s) => new Date(now.getTime() - s * 1000).toISOString();
@@ -114,4 +114,50 @@ test('isFutureTimestamp', () => {
   assert.equal(isFutureTimestamp(ahead(61), now, 60_000), true);
   assert.equal(isFutureTimestamp(ahead(60), now, 60_000), false);
   assert.equal(isFutureTimestamp(ahead(1000), 'x'), false);
+});
+
+const svcText = (services) => JSON.stringify({ updated: '2026-11-16T18:00:00+00:00', services });
+
+test('parseStatus reads state and since from an object status', () => {
+  const since = '2026-11-16T15:00:00+00:00';
+  const r = parseStatus(svcText([{ name: 'A', status: { state: 'down', since } }]));
+  assert.equal(r.services[0].status, 'down');
+  assert.equal(r.services[0].since, since);
+});
+
+test('parseStatus maps plain-string statuses to invalid without affecting other rows', () => {
+  const r = parseStatus(svcText([
+    { name: 'A', status: 'up' }, { name: 'B', status: 'down' }, { name: 'C', status: 'UP' },
+    { name: 'D', status: { state: 'up' } },
+  ]));
+  assert.deepEqual(r.services.map((s) => s.status), ['invalid', 'invalid', 'invalid', 'up']);
+});
+
+test('parseStatus maps unusable states and statuses to unknown', () => {
+  const r = parseStatus(svcText([
+    { name: 'a', status: { state: 'degraded' } }, { name: 'b', status: {} }, { name: 'c', status: { state: 5 } },
+    { name: 'd', status: { state: ' UP ' } },
+    { name: 'e' }, { name: 'f', status: null }, { name: 'g', status: 3 }, { name: 'h', status: [] },
+  ]));
+  assert.deepEqual(r.services.map((s) => s.status), ['unknown', 'unknown', 'unknown', 'up', 'unknown', 'unknown', 'unknown', 'unknown']);
+});
+
+test('parseStatus omits since when missing, non-string or unparseable', () => {
+  const r = parseStatus(svcText([
+    { name: 'a', status: { state: 'up' } },
+    { name: 'b', status: { state: 'up', since: 123 } },
+    { name: 'c', status: { state: 'up', since: 'garbage' } },
+    { name: 'd', status: { state: 'up', since: null } },
+    { name: 'e', status: 'up', },
+  ]));
+  for (const s of r.services) assert.equal('since' in s, false);
+});
+
+test('formatSince mirrors formatRelativeAge and returns null when unusable', () => {
+  assert.equal(formatSince(ago(3 * 3600), now), '3 h ago');
+  assert.equal(formatSince(ago(3 * 3600), now), formatRelativeAge(ago(3 * 3600), now));
+  assert.equal(formatSince(undefined, now), null);
+  assert.equal(formatSince('nope', now), null);
+  assert.equal(formatSince(ahead(301), now), null);
+  assert.equal(formatSince(ahead(300), now), 'just now');
 });
