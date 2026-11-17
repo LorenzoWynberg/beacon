@@ -27,7 +27,7 @@ The fetch uses `status.json?t=<now>` with `cache: 'no-store'`. A non-OK response
 
 ### Refresh
 
-`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header is refreshed; if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only. Each fetch is aborted after `REFETCH_TIMEOUT_MS` (30000) and counts as a failed fetch: on a refresh it warns and keeps the last board (pending clears); a hung first load shows the first-load error.
+`render` is split into `renderHeader` (age line and stale banner; an unchanged banner keeps its node so the `role="status"` region does not re-announce) and `renderServices` (rebuilds the list, re-inserting `#services` after `#notices` if grouped mode detached it). After a successful first load `main.js` starts a poller that re-fetches `status.json` every 5 minutes. If the text is unchanged only the header is refreshed; if it changed and parses, both parts re-render. A failed or unparseable refresh only logs `console.warn` and keeps the current view; the error box is first-load-only. Each fetch, including reading the response body, is aborted after `REFETCH_TIMEOUT_MS` (30000) and counts as a failed fetch: on a refresh it warns and keeps the last board (pending clears); a hung first load shows the first-load error.
 
 ## `src/refresh.js`
 
