@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0 - 2026-11-16
+
+### New
+
+#### Shared links now show a proper preview
+
+When you paste the status board's URL into Slack, X or Discord, it now unfurls into a titled card instead of a bare link. The card reads **Beacon status** with the description *"Live up/down status for every Beacon service, at a glance."* Teammates can see what the link is before they click it. The preview is text only and has no image.
+
+### Improved
+
+#### One official address for search engines
+
+The board now declares `https://lorenzowynberg.github.io/beacon/` as its canonical URL. Search engines treat that as the one official address, so copies of the board reached by slightly different URLs no longer compete with it in search results. This closes the two open SEO follow-ups: the missing canonical link and the missing Open Graph/Twitter preview tags.
+
+Nothing else on the board changes. It looks and behaves exactly as before, with the same services, badges and status data.
+
 ## 0.2.0 - 2026-11-16
 
 ### Highlights
