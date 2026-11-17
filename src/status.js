@@ -61,7 +61,7 @@ export function parseStatus(text) {
         name: typeof item.name === 'string' ? item.name : '',
         status: normaliseStatus(item.status),
       };
-      if (typeof item.note === 'string') out.note = item.note;
+      if (typeof item.note === 'string' && item.note.trim()) out.note = item.note.trim();
       if (typeof item.group === 'string' && item.group.trim()) out.group = item.group.trim();
       return out;
     }),
