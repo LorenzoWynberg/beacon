@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.0 - 2026-11-17
+
+### New: 24-hour uptime on each status card
+
+Each service card can now show how reliable the service has been over the last day, as well as its current state. A muted figure such as `99.9% up · 24 h` appears beside the `· since` text. It has one decimal place and is always rounded down, so a service with 99.96% uptime shows `99.9%`, not `100.0%`. Time spent in an unknown state is left out of the figure.
+
+The figure appears only when the service's history covers the whole 24-hour window. The board never shows a figure for part of a day. A service whose current state began more than 24 hours ago gets a figure without any history. A service that changed state more recently needs history entries that reach back that far. The figure also stays current: every 5 minutes the board updates it in place, even when `status.json` has not changed. It appears when the window fills and disappears when it no longer applies.
+
+### For people who update status.json
+
+Each service's `status` can take an optional `history` array of earlier `{ "state", "since" }` entries, oldest first. When a service changes state, add its previous `state` and `since` to the end of `history`, then set the new current `state` and `since`. Entries must be in strictly ascending time order, and the last one must be earlier than the current `since`. If the history is out of order, malformed or not an array, the board ignores all of it. The card still shows its badge and since text, but no uptime figure. You can drop old entries once a newer entry is older than 24 hours, so long as the oldest entry you keep is at least 24 hours old. The figure is only as accurate as the history: every state change has to be recorded.
+
+The sample `status.json` now includes history for the API service, so the API card shows a 24-hour uptime figure. The format is documented in the README and in the user guide page on updating `status.json`.
+
 ## 1.0.0 - 2026-11-17
 
 ### New: see how long each service has been in its current state
