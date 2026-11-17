@@ -219,6 +219,7 @@ test('formatUptime rounds down to one decimal', () => {
   assert.equal(formatUptime(99.96), '99.9% up · 24 h');
   assert.equal(formatUptime(100), '100.0% up · 24 h');
   assert.equal(formatUptime(99.8), '99.8% up · 24 h');
+  assert.equal(formatUptime(28.999999999999996), '29.0% up · 24 h');
   assert.equal(formatUptime(0), '0.0% up · 24 h');
   assert.equal(formatUptime(100 * 23 / 24), '95.8% up · 24 h');
 });

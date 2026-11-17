@@ -143,5 +143,6 @@ export function uptimeOverWindow(service, now, windowMs = DAY * 1000) {
 
 export function formatUptime(pct) {
   if (typeof pct !== 'number' || !Number.isFinite(pct)) return null;
-  return `${(Math.floor(pct * 10) / 10).toFixed(1)}% up · 24 h`;
+  // The epsilon absorbs float noise (28.999999999999996 is a true 29.0) without lifting a real 99.96 to 100.
+  return `${(Math.floor(pct * 10 + 1e-9) / 10).toFixed(1)}% up · 24 h`;
 }
